@@ -1,0 +1,46 @@
+---------------------------------------------------------------------------------------------------------------------------
+| Class		 		|   Objetivo	 
+---------------------------------------------------------------------------------------------------------------------------
+| Message			|   Criar uma Mensagem geral
+---------------------------------------------------------------------------------------------------------------------------
+| JsonMessage			|   Criar uma Mensagem do tipo JSON
+---------------------------------------------------------------------------------------------------------------------------
+| PickleMessage 		|   Criar uma Mensagem do tipo PICKLE
+---------------------------------------------------------------------------------------------------------------------------
+| XmlMessage 			|   Criar uma Mensagem do tipo XML
+---------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------
+| Class		|   Command	  	|	Mensagem
+---------------------------------------------------------------------------------------------------------------------------
+| Subscribe	|   "subscribe"	  	|  {“command”: “subscribe”; “type”: “Json”; “topic”: “/weather”}
+---------------------------------------------------------------------------------------------------------------------------
+| Unsubscribe  	|   "unsubscribe" 	|  {“command”: “unsubscribe”; “type”: Xml”; “topic”: “/weather”}
+---------------------------------------------------------------------------------------------------------------------------
+| Listall 	|   "listall"		|  {“command”: “listall”; “type”: “Pickle”}
+---------------------------------------------------------------------------------------------------------------------------
+| Publish  	|   "pub"	  	|  {“command”: “pub”; “type”: “Json”; “topic”: “/weather”}
+---------------------------------------------------------------------------------------------------------------------------
+	O “type” pode ser Pickle, Json ou Xml.
+
+	
+	No início da comunicação entre o middleware e o broker, é enviada uma mensagem do tipo String codificada em bytes, com a indicação da sua Serialization ("0" para json, "2" para pickle e "1" para xml) utilizando o método sendFirst().
+
+	Todas as mensagens são codificadas em bytes e é enviado juntamente com o corpo da mensagem, o tamanho dela em 2 bytes, big endian.
+
+	Após o broker saber em que mecanismo de serialização este cliente comunica, passará a enviar as mensagens de acordo com tal, através dos classmethods existentes no protocolo, por exemplo, um cliente que use o mecanismo JSON irá usar Protocol.json para que este converta a mensagem num objeto do tipo JsonMessage para que depois possa ser convertido a json com o comando .dumps. 
+
+	O protocolo tem como base a classe Message que serve para juntar as diferentes classes numa só. Depois tem 7 classes herdadas, organizadas em 2 grupos: Serialização e Tipo de Envio. A Serialização é constituída pelas classes JsonMessage, XmlMessage e PickleMessage, enquanto que o outro grupo é constituído pelas classes Subscribe, Unsubscribe, ListAll e Publish. Para ser enviada uma mensagem do tipo Publish, temos de primeiramente de criar uma mensagem de uma classe de Serialização, como JsonMessage, utilizando o método Protocol.json(topic, value), identificando os argumentos, como topic e/ou value; Depois temos de utilizar esta mensagem do tipo JsonMessage como argumento para criar a mensagem do tipo Publish, usando Protocol.pub(Message); Por fim, enviamos a mensagem com Protocol.send(Message).
+
+	Sendo assim, temos como possibilidades de mensagem:
+	-Subscribe: Permite que um cliente subscreva um determinado tópico, sendo que quando alguma mensagem seja publicada neste, ela será automaticamente enviada para este cliente.
+	-Unsubscribe: Anula a ação do Subscribe, sendo que este cliente não receberá mais atualizações deste tópico.
+	-ListAll: O cliente recebe uma mensagem com a lista de todos os tópicos que são possiveis de efetuar uma subscrição.
+	-Publish: O cliente publica uma mensagem num tópico específico, para que esta seja enviada aos clientes que subscreveram o tópico indicado.
+
+	Os métodos Protocol.Encode e Protocol.Decode são específicos para a codificação e descodificação, respetivamente, do tipo de mensagens Xml, não sendo utilizado para outro tipo de codificação e descodificação.
+	
+		
+Filipe Gonçalves, 98083
+João Borges, 98155
+
